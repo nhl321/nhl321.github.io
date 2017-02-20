@@ -91,7 +91,7 @@ function RunAll() {
 			data.tot_losses[team] = ot.query.results.div.div.table.tbody.tr[team].td[10].content;
 			data.ot_losses[team] = Number(data.tot_losses[team]) - Number(data.reg_losses[team]);
 			data.points321[team] = 3*Number(data.reg_wins[team]) + 2*(Number(data.ot_wins[team]) + Number(data.so_wins[team])) + Number(data.ot_losses[team]);
-			data.ROW[team] = Number(data.reg_wins[team]) + Number(data.so_wins[team]);
+			data.ROW[team] = Number(data.reg_wins[team]) + Number(data.ot_wins[team]);
 			data.ranking_sum[team] = 10000*Number(data.points321[team]) + 100*(82 - Number(data.GP[team])) + data.ROW[team];
 			data.reg_points[team] = 2*(Number(data.reg_wins[team]) + Number(data.ot_wins[team]) + Number(data.so_wins[team])) + Number(data.ot_losses[team]);
 			data.ranking_sum_reg[team] = 10000*Number(data.reg_points[team]) + 100*(82 - Number(data.GP[team])) + data.ROW[team];
