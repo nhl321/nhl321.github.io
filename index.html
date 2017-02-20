@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>NHL Point System Comparison</title>
+	<link rel="shortcut icon" href="http://icons.veryicon.com/ico/Sport/Sportset/Hockey%20stick%20and%20puck.ico" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</head>
+
+<script>
+  window.onload = function() { RunAll() };
+</script>
+
+<script>
+
+var url_main = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%22https%3A%2F%2Fwww.sportingcharts.com%2Fnhl%2Fstats%2Fteam-win-loss-record-by-type-regulation-overtime-and-shootout%2F2016%2F%22%20and%20xpath%3D%22%2F%2Fdiv%5B%40class%3D'sc-grid-table'%5D%22&format=json&diagnostics=true&callback=";
+//select * from html where url="https://www.sportingcharts.com/nhl/stats/team-win-loss-record-by-type-regulation-overtime-and-shootout/2016/" and xpath="//div[@class='sc-grid-table']"
+var data =  {
+	"team_names": [],
+	"GP": [],
+	"reg_wins": [],
+	"ot_wins": [],
+	"so_wins": [],
+	"reg_losses": [],
+	"tot_losses": [],
+	"ot_losses": [],
+	"points321": [],
+	"ROW": [],
+	"ranking_sum": [],
+	"reg_points": [],
+	"ranking_sum_reg": []
+};
+
+var data_sorted =  {
+	"team_names": [],
+	"GP": [],
+	"reg_wins": [],
+	"ot_wins": [],
+	"so_wins": [],
+	"reg_losses": [],
+	"tot_losses": [],
+	"ot_losses": [],
+	"points321": [],
+	"ROW": [],
+	"ranking_sum": []
+};
+
+var data_sorted_reg =  {
+	"team_names": [],
+	"GP": [],
+	"reg_wins": [],
+	"ot_wins": [],
+	"so_wins": [],
+	"reg_losses": [],
+	"tot_losses": [],
+	"ot_losses": [],
+	"points321": [],
+	"ROW": [],
+	"ranking_sum": [],
+	"reg_points": []
+};
+
+var Atlantic = ["Montreal Canadiens", "Ottawa Senators", "Boston Bruins", "Florida Panthers", "Toronto Maple Leafs", "Buffalo Sabres", "Tampa Bay Lightning", "Detroit Red Wings"];
+var Metro = ["Washington Capitals", "Columbus Blue Jackets", "New York Rangers", "Pittsburgh Penguins", "Philadelphia Flyers", "New York Islanders", "New Jersey Devils", "Carolina Hurricanes"];
+var Central = ["Minnesota Wild", "Chicago Blackhawks", "St. Louis Blues", "Nashville Predators", "Winnipeg Jets", "Dallas Stars", "Arizona Coyotes"];
+var Pacific = ["Edmonton Oilers", "San Jose Sharks", "Anaheim Ducks", "Calgary Flames", "Los Angeles Kings", "Vancouver Canucks", "Colorado Avalanche"];
+var Atlantic3 = [];
+var Metro3 = [];
+var Central3 = [];
+var Pacific3 = [];
+var WC_East = [];
+var WC_West = [];
+
+var Atlantic3b = [];
+var Metro3b = [];
+var Central3b = [];
+var Pacific3b = [];
+var WC_Eastb = [];
+var WC_Westb = [];
+
+
+function RunAll() {
+	$.getJSON(url_main, function(json) {
+		ot = json;
+		for (var team = 0; team < 30; team++){
+			data.team_names[team] = ot.query.results.div.div.table.tbody.tr[team].td[1].a.content;
+			data.GP[team] = ot.query.results.div.div.table.tbody.tr[team].td[2].content;
+			data.reg_wins[team] = ot.query.results.div.div.table.tbody.tr[team].td[3].content;
+			data.ot_wins[team] = ot.query.results.div.div.table.tbody.tr[team].td[4].content;
+			data.so_wins[team] = ot.query.results.div.div.table.tbody.tr[team].td[5].content;
+			data.reg_losses[team] = ot.query.results.div.div.table.tbody.tr[team].td[7].content;
+			data.tot_losses[team] = ot.query.results.div.div.table.tbody.tr[team].td[10].content;
+			data.ot_losses[team] = Number(data.tot_losses[team]) - Number(data.reg_losses[team]);
+			data.points321[team] = 3*Number(data.reg_wins[team]) + 2*(Number(data.ot_wins[team]) + Number(data.so_wins[team])) + Number(data.ot_losses[team]);
+			data.ROW[team] = Number(data.reg_wins[team]) + Number(data.so_wins[team]);
+			data.ranking_sum[team] = 10000*Number(data.points321[team]) + 100*(82 - Number(data.GP[team])) + data.ROW[team];
+			data.reg_points[team] = 2*(Number(data.reg_wins[team]) + Number(data.ot_wins[team]) + Number(data.so_wins[team])) + Number(data.ot_losses[team]);
+			data.ranking_sum_reg[team] = 10000*Number(data.reg_points[team]) + 100*(82 - Number(data.GP[team])) + data.ROW[team];
+		}
+		
+		data.sorted_points = sortWithIndices(data.ranking_sum);
+		data.sorted_points = data.sorted_points.reverse();
+		data.sort_indices = data.sorted_points.sortIndices.reverse();
+		
+		for (var team = 0; team < 30; team++){
+			data_sorted.team_names[team] = data.team_names[data.sort_indices[team]];
+			data_sorted.GP[team] = data.GP[data.sort_indices[team]];
+			data_sorted.reg_wins[team] = data.reg_wins[data.sort_indices[team]];
+			data_sorted.ot_wins[team] = data.ot_wins[data.sort_indices[team]];
+			data_sorted.so_wins[team] = data.so_wins[data.sort_indices[team]];
+			data_sorted.reg_losses[team] = data.reg_losses[data.sort_indices[team]];
+			data_sorted.tot_losses[team] = data.tot_losses[data.sort_indices[team]];
+			data_sorted.ot_losses[team] = data.ot_losses[data.sort_indices[team]];
+			data_sorted.points321[team] = data.points321[data.sort_indices[team]];
+			data_sorted.ROW[team] = data.ROW[data.sort_indices[team]];
+		}
+		
+		//321 System
+		//Atlantic Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Atlantic.indexOf(data_sorted.team_names[i]) >= 0){
+					Atlantic3[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		//Metro Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Metro.indexOf(data_sorted.team_names[i]) >= 0){
+					Metro3[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		//Central Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Central.indexOf(data_sorted.team_names[i]) >= 0){
+					Central3[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//Pacific Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Pacific.indexOf(data_sorted.team_names[i]) >= 0){
+					Pacific3[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//WC East
+		var lasti = -1;
+		for (var j = 0; j <= 9; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if ( (Atlantic3.indexOf(data_sorted.team_names[i]) == -1 && Metro3.indexOf(data_sorted.team_names[i]) == -1) && (Atlantic.indexOf(data_sorted.team_names[i]) >= 0 || Metro.indexOf(data_sorted.team_names[i]) >= 0)){
+					WC_East[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//WC West
+		var lasti = -1;
+		for (var j = 0; j <= 7; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if ( (Central3.indexOf(data_sorted.team_names[i]) == -1 && Pacific3.indexOf(data_sorted.team_names[i]) == -1) && (Central.indexOf(data_sorted.team_names[i]) >= 0 || Pacific.indexOf(data_sorted.team_names[i]) >= 0)){
+					WC_West[j] = data_sorted.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//current system
+		data.sorted_points_reg = sortWithIndices(data.ranking_sum_reg);
+		data.sorted_points_reg = data.sorted_points_reg.reverse();
+		data.sort_indices_reg = data.sorted_points_reg.sortIndices.reverse();
+		
+		for (var team = 0; team < 30; team++){
+			data_sorted_reg.team_names[team] = data.team_names[data.sort_indices_reg[team]];
+			data_sorted_reg.GP[team] = data.GP[data.sort_indices_reg[team]];
+			data_sorted_reg.reg_wins[team] = data.reg_wins[data.sort_indices_reg[team]];
+			data_sorted_reg.ot_wins[team] = data.ot_wins[data.sort_indices_reg[team]];
+			data_sorted_reg.so_wins[team] = data.so_wins[data.sort_indices_reg[team]];
+			data_sorted_reg.reg_losses[team] = data.reg_losses[data.sort_indices_reg[team]];
+			data_sorted_reg.tot_losses[team] = data.tot_losses[data.sort_indices_reg[team]];
+			data_sorted_reg.ot_losses[team] = data.ot_losses[data.sort_indices_reg[team]];
+			data_sorted_reg.reg_points[team] = data.reg_points[data.sort_indices_reg[team]];
+			data_sorted_reg.ROW[team] = data.ROW[data.sort_indices_reg[team]];
+		}
+		
+		//Atlantic Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Atlantic.indexOf(data_sorted_reg.team_names[i]) >= 0){
+					Atlantic3b[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		//Metro Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Metro.indexOf(data_sorted_reg.team_names[i]) >= 0){
+					Metro3b[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		//Central Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Central.indexOf(data_sorted_reg.team_names[i]) >= 0){
+					Central3b[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//Pacific Top 3
+		var lasti = -1;
+		for (var j = 0; j <= 2; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if (Pacific.indexOf(data_sorted_reg.team_names[i]) >= 0){
+					Pacific3b[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//WC East
+		var lasti = -1;
+		for (var j = 0; j <= 9; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if ( (Atlantic3b.indexOf(data_sorted_reg.team_names[i]) == -1 && Metro3b.indexOf(data_sorted_reg.team_names[i]) == -1) && (Atlantic.indexOf(data_sorted_reg.team_names[i]) >= 0 || Metro.indexOf(data_sorted_reg.team_names[i]) >= 0)){
+					WC_Eastb[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//WC West
+		var lasti = -1;
+		for (var j = 0; j <= 7; j++){
+			for (var i = lasti + 1; i < 30; i++){
+				if ( (Central3b.indexOf(data_sorted_reg.team_names[i]) == -1 && Pacific3b.indexOf(data_sorted_reg.team_names[i]) == -1) && (Central.indexOf(data_sorted_reg.team_names[i]) >= 0 || Pacific.indexOf(data_sorted_reg.team_names[i]) >= 0)){
+					WC_Westb[j] = data_sorted_reg.team_names[i];
+					lasti = i;
+					break;
+				}
+			}
+		}
+		
+		//create table
+		var table_names = ['main_tableA', 'main_tableM', 'main_tableWCE', 'main_tableC', 'main_tableP', 'main_tableWCW'];
+		var team_amount = [2, 2, 9, 2, 2, 7];
+		var table_heading_names = ['Atlantic', 'Metro', 'Eastern WC', 'Central', 'Pacific', 'Western WC'];
+		
+		for (var table_num = 0; table_num <= 5; table_num++){
+		
+		//create tables
+		var white_space = 50;
+		
+		$('#' + table_names[table_num]).append( '<table>');
+		if (table_num == 0 || table_num == 3){
+			 $('#' + table_names[table_num]).append( '<tr>');
+			 $('#' + table_names[table_num]).append('<td colspan="8" style="font-size:30px; border: solid 0 #060;">3-2-1 Point System</td>'); 
+			 $('#' + table_names[table_num]).append( '<td width = ' + white_space + ' style="border: solid 0 #060;" </td>');
+			 $('#' + table_names[table_num]).append('<td colspan="8" style="font-size:30px; border: solid 0 #060;">Current Point System</td>');
+			$('#' + table_names[table_num]).append( '</tr>');
+		}
+		
+        $('#' + table_names[table_num]).append( '<tr>');
+        var table_headings = [table_heading_names[table_num], 'GP', 'Reg W', 'Reg L', 'OT/SO W', 'OT/SO L', 'PTS', 'ROW'];
+        for (var i  = 0; i<table_headings.length; i++){
+            $('#' + table_names[table_num]).append('<th>' +table_headings[i] +'</th>');
+        }
+        $('#' + table_names[table_num]).append( '<td width = ' + white_space + ' style="border: solid 0 #060;" </td>');
+        for (var i  = 0; i<table_headings.length; i++){
+            $('#' + table_names[table_num]).append('<th>' +table_headings[i] +'</th>');
+        }
+         $('#' + table_names[table_num]).append( '</tr>');
+        
+        for (t = 0; t <= team_amount[table_num]; t++){
+        	if (table_num == 0){
+        		ti = data_sorted.team_names.indexOf(Atlantic3[t]);
+        	} else if (table_num == 1){
+        		ti = data_sorted.team_names.indexOf(Metro3[t]);
+        	} else if (table_num == 2){
+        		ti = data_sorted.team_names.indexOf(WC_East[t]);
+        	} else if (table_num == 3){
+        		ti = data_sorted.team_names.indexOf(Central3[t]);
+        	} else if (table_num == 4){
+        		ti = data_sorted.team_names.indexOf(Pacific3[t]);
+        	} else if (table_num == 5){
+        		ti = data_sorted.team_names.indexOf(WC_West[t]);
+        	}
+        	
+        	$('#' + table_names[table_num]).append( '<tr>');
+        	$('#' + table_names[table_num]).append( '<td width="120">' + data_sorted.team_names[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.GP[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.reg_wins[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.reg_losses[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + (Number(data_sorted.ot_wins[ti]) + Number(data_sorted.so_wins[ti])) + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.ot_losses[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.points321[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted.ROW[ti] + '</td>');
+        	
+        	if (table_num == 0){
+        		ti = data_sorted_reg.team_names.indexOf(Atlantic3b[t]);
+        	} else if (table_num == 1){
+        		ti = data_sorted_reg.team_names.indexOf(Metro3b[t]);
+        	} else if (table_num == 2){
+        		ti = data_sorted_reg.team_names.indexOf(WC_Eastb[t]);
+        	} else if (table_num == 3){
+        		ti = data_sorted_reg.team_names.indexOf(Central3b[t]);
+        	} else if (table_num == 4){
+        		ti = data_sorted_reg.team_names.indexOf(Pacific3b[t]);
+        	} else if (table_num == 5){
+        		ti = data_sorted_reg.team_names.indexOf(WC_Westb[t]);
+        	}
+        	$('#' + table_names[table_num]).append( '<td width = ' + white_space + ' style="border: solid 0 #060;" </td>');
+        	$('#' + table_names[table_num]).append( '<td width="120">' + data_sorted_reg.team_names[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.GP[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.reg_wins[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.reg_losses[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + (Number(data_sorted_reg.ot_wins[ti]) + Number(data_sorted_reg.so_wins[ti])) + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.ot_losses[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.reg_points[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '<td>' + data_sorted_reg.ROW[ti] + '</td>');
+        	$('#' + table_names[table_num]).append( '</tr>');
+        	
+        }
+        $('#' + table_names[table_num]).append( '</table>')
+        }
+        
+	});
+}
+
+function sortWithIndices(toSort) {
+  for (var i = 0; i < toSort.length; i++) {
+    toSort[i] = [toSort[i], i];
+  }
+  toSort.sort(function(left, right) {
+    return left[0] < right[0] ? -1 : 1;
+  });
+  toSort.sortIndices = [];
+  for (var j = 0; j < toSort.length; j++) {
+    toSort.sortIndices.push(toSort[j][1]);
+    toSort[j] = toSort[j][0];
+  }
+  return toSort;
+}
+
+</script>
+
+<style>
+table {
+    width: 50%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    float: left;
+    display: inline-block;
+}
+
+th {
+text-align:center;
+font-size: 12px;
+background-color:black;
+color: white;
+padding: 4px;
+border: 1px solid #000;
+ white-space: nowrap;
+  overflow: hidden;
+}
+
+
+td {
+text-align:center;
+font-size: 12px;
+padding: 4px;
+border: 1px solid #000;
+ white-space: nowrap;
+  overflow: hidden;
+}
+</style>
+
+<body>
+<div id="main_tableA"></div>
+<br>
+<div id="main_tableM"></div>
+<br>
+<div id="main_tableWCE"></div>
+<br><br><br>
+<div id="main_tableC"></div>
+<br>
+<div id="main_tableP"></div>
+<br>
+<div id="main_tableWCW"></div>
+</body>
+
+</html>
